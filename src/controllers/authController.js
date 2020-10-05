@@ -6,7 +6,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("../config");
 
-router.post("/singin", (req, res, next) => {
+router.post("/singin", async (req, res, next) => {
 
     const {email, password} = req.body
 
@@ -18,7 +18,18 @@ router.post("/singin", (req, res, next) => {
         })
     }
 
-  res.json("singUp");
+    const passwordValid = await user.validatePassword(password)
+    if(!passwordValid){
+        res.status(404).json({
+            auth: false, token: null
+        })
+    }
+
+    jwt.sign({id: user.id}, config.secret, {
+        expiresIn: 69 * 60 * 24
+    })
+
+  res.json({auth: true, token});
 });
 router.post("/singup", async (req, res, next) => {
   const { username, email, password } = req.body;
