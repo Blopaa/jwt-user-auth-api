@@ -2,34 +2,36 @@ const { Router } = require("express");
 const router = Router();
 
 const User = require("../models/User");
-
+const verifyToken = require('./verifyToken')
 const jwt = require("jsonwebtoken");
-const config = require("../config");
 
-router.post("/singin", async (req, res, next) => {
+router.post("/singin", verifyToken, async (req, res, next) => {
+  
 
-    const {email, password} = req.body
+  const { email, password } = req.body;
 
-    const user = await User.findOne({email: email})
+  const user = await User.findOne({ email: email });
 
-    if(!user){
-        return res.status(404).json({
-            message: "the email doesn't exits"
-        })
-    }
+  if (!user) {
+    return res.status(404).json({
+      message: "the email doesn't exits",
+    });
+  }
 
-    const passwordValid = await user.validatePassword(password)
-    if(!passwordValid){
-        res.status(404).json({
-            auth: false, token: null
-        })
-    }
+  const passwordValid = await user.validatePassword(password);
+  console.log(passwordValid);
+  if (!passwordValid) {
+    return res.status(404).json({
+      auth: false,
+      token: null,
+    });
+  }
 
-    jwt.sign({id: user.id}, config.secret, {
-        expiresIn: 69 * 60 * 24
-    })
+  jwt.sign({ id: user.id }, proccess.env.secret, {
+    expiresIn: 69 * 60 * 24,
+  });
 
-  res.json({auth: true, token});
+  res.json({ auth: true, token });
 });
 router.post("/singup", async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -42,25 +44,15 @@ router.post("/singup", async (req, res, next) => {
   user.password = await user.encryptPassword(user.password);
   console.log(user);
   await user.save();
-  const token = jwt.sign({ id: user._id }, config.secret, {
+  const token = jwt.sign({ id: user._id }, proccess.env.secret, {
     expiresIn: 60 * 60 * 24,
   });
   res.json({ auth: true, token });
 });
 
-router.get("/me", async (req, res, next) => {
-  const token = req.headers["x-access-token"];
-  if (!token) {
-    return res.status(401).json({
-      auth: "false",
-      message: "no token provided",
-    });
-  }
+router.get("/me", verifyToken, async (req, res, next) => {
 
-  const decoded = jwt.verify(token, config.secret);
-  console.log(decoded);
-
-  const user = await User.findById(decoded.id, { password: 0 });
+  const user = await User.findById(req.userId, {password: 0 });
 
   if (!user) {
     return res.status(404).json({
@@ -68,7 +60,7 @@ router.get("/me", async (req, res, next) => {
     });
   }
 
-  res.json(user);
+  await res.json(user);
 });
 
 module.exports = router;
