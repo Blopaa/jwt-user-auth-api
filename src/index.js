@@ -1,9 +1,11 @@
-const app = require('./app')
-require('./database')
+const dotenv = require("dotenv");
+dotenv.config();
+const app = require("./app");
+require("./database");
 
-const init = async () => {
-    await app.listen(3000)
-    console.log(`server on port 3000`)
-}
+const main = async () => {
+  await app.listen(app.get('port'));
+  console.log(`Server on port ${app.get('port')}`);
+};
 
-init()
+main();
