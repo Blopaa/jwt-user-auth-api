@@ -12,6 +12,12 @@ router.post("/singin", (req, res, next) => {
 
     const user = await User.findOne({email: email})
 
+    if(!user){
+        return res.status(404).json({
+            message: "the email doesn't exits"
+        })
+    }
+
   res.json("singUp");
 });
 router.post("/singup", async (req, res, next) => {
