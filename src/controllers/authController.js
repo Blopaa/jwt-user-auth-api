@@ -27,11 +27,11 @@ router.post("/singin", verifyToken, async (req, res, next) => {
     });
   }
 
-  jwt.sign({ id: user.id }, proccess.env.secret, {
+  jwt.sign({ id: user.id }, process.env.secret, {
     expiresIn: 69 * 60 * 24,
   });
 
-  res.json({ auth: true, token });
+  res.json({ auth: true});
 });
 router.post("/singup", async (req, res, next) => {
   const { username, email, password } = req.body;
@@ -44,7 +44,7 @@ router.post("/singup", async (req, res, next) => {
   user.password = await user.encryptPassword(user.password);
   console.log(user);
   await user.save();
-  const token = jwt.sign({ id: user._id }, proccess.env.secret, {
+  const token = jwt.sign({ id: user._id }, process.env.secret, {
     expiresIn: 60 * 60 * 24,
   });
   res.json({ auth: true, token });
